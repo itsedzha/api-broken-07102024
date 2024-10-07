@@ -7,22 +7,26 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function register(Request $request) {
-        $fields = $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed'
-        ]);
+    public function register(Request $request)
+{
+    $fields = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|confirmed|min:6',
+    ]);
 
-        $user = $user->create($fields);
+    $user = User::create([
+        'name' => $fields['name'],
+        'email' => $fields['email'],
+        'password' => bcrypt($fields['password']),
+    ]);
 
-        $token = $user->createToken($request->name);
-        
-        return [
-            'user' => $user,
-            'token' => $token->plainTextToken
-        ];
-    }
+    return response()->json([
+        'user' => $user,
+        'token' => $user->createToken('my-app-token')->plainTextToken,
+    ], 201);
+}
+
 
     public function login(Request $request) {
         $request->validate([
